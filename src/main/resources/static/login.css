@@ -1,0 +1,19 @@
+﻿*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eaf4e8,#d5e8d4)}
+.login-container{width:100%;max-width:430px;background:white;padding:38px;border-radius:18px;box-shadow:0 12px 35px #244d2b18}
+.brand{text-align:center;color:#28713d;font-size:12px;font-weight:bold;letter-spacing:1.5px}
+h1{text-align:center;color:#245d34;margin:24px 0 8px;font-size:29px}
+.subtitle{text-align:center;color:#718071;font-size:14px;line-height:1.5;margin-bottom:28px}
+label{display:block;font-size:14px;font-weight:600;color:#344b37;margin:17px 0 7px}
+input{width:100%;padding:13px;border:1px solid #cbd5c9;border-radius:8px;font-size:15px}
+input:focus{outline:2px solid #9ac4a1;border-color:#438652}
+button{width:100%;padding:14px;margin-top:24px;background:#28713d;color:white;border:0;border-radius:8px;font-weight:bold;font-size:15px;cursor:pointer}
+button:hover{background:#205d32}
+.signup{text-align:center;font-size:14px;margin-top:24px;color:#657267}
+a{color:#28713d;font-weight:bold;text-decoration:none}
+a:hover{text-decoration:underline}
+.footer{text-align:center;color:#8a978b;font-size:11px;margin-top:30px}
+.message{padding:11px;border-radius:7px;font-size:13px;margin:12px 0}
+.error{background:#fff0f0;color:#a32d2d}
+.success{background:#edf8ed;color:#28713d}
+[hidden]{display:none!important}

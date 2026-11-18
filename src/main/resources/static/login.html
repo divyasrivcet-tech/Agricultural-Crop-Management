@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Login | Agriculture Management</title>
+<link rel="stylesheet" href="login.css">
+</head>
+<body>
+<div class="login-container">
+    <div class="brand">🌱 AGRICULTURE MANAGEMENT</div>
+    <h1>Welcome Back!</h1>
+    <p class="subtitle">Sign in to access your crop management dashboard.</p>
+
+    <div class="message error" id="errorMessage" hidden>
+        Invalid username or password. Please try again.
+    </div>
+    <div class="message success" id="logoutMessage" hidden>
+        You have logged out successfully.
+    </div>
+
+    <form action="/api/auth/login" method="post">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               placeholder="Enter your username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               placeholder="Enter your password" required>
+
+        <button type="submit">Login to Dashboard</button>
+    </form>
+
+    <p class="signup">New staff member? <a href="/register.html">Create New Account</a></p>
+    <p class="footer">Secure Staff Access · Crop Management System</p>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+if (params.has('error')) document.getElementById('errorMessage').hidden = false;
+if (params.has('logout')) document.getElementById('logoutMessage').hidden = false;
+</script>
+</body>
+</html>

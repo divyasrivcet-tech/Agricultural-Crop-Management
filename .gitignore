@@ -1,0 +1,9 @@
+target/
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.env
+yield_report.csv
+yield_by_crop.png
+
