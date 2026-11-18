@@ -1,4 +1,3 @@
-
 package com.agriculture.cropmanagement;
 
 import java.util.List;
@@ -19,23 +18,20 @@ public class FarmerController {
         this.jdbc = jdbc;
     }
 
-    // View all farmers
     @GetMapping
     public List<Map<String, Object>> getAllFarmers() {
         String sql = """
-            SELECT farmer_id, farmer_name, phone, village, district
+            SELECT farmer_id, farmer_name, phone, village, district, address
             FROM farmers
             ORDER BY farmer_id
             """;
-
         return jdbc.queryForList(sql);
     }
 
-    // View one farmer by ID
     @GetMapping("/{id}")
     public Map<String, Object> getFarmer(@PathVariable int id) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT farmer_id, farmer_name, phone, village, district FROM farmers WHERE farmer_id = ?",
+            "SELECT farmer_id, farmer_name, phone, village, district, address FROM farmers WHERE farmer_id = ?",
             id
         );
         if (rows.isEmpty()) {
@@ -44,18 +40,15 @@ public class FarmerController {
         return rows.get(0);
     }
 
-    // Add a farmer
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Object> addFarmer(
-            @RequestBody FarmerRequest farmer) {
-
+    public Map<String, Object> addFarmer(@RequestBody FarmerRequest farmer) {
         validate(farmer);
 
         String sql = """
-            INSERT INTO farmers (farmer_name, phone, village, district)
-            VALUES (?, ?, ?, ?)
-            RETURNING farmer_id, farmer_name, phone, village, district
+            INSERT INTO farmers (farmer_name, phone, village, district, address)
+            VALUES (?, ?, ?, ?, ?)
+            RETURNING farmer_id, farmer_name, phone, village, district, address
             """;
 
         return jdbc.queryForMap(
@@ -63,23 +56,22 @@ public class FarmerController {
             farmer.farmerName(),
             farmer.phone(),
             farmer.village(),
-            farmer.district()
+            farmer.district(),
+            farmer.address()
         );
     }
 
-    // Update a farmer
     @PutMapping("/{id}")
     public Map<String, Object> updateFarmer(
             @PathVariable int id,
             @RequestBody FarmerRequest farmer) {
-
         validate(farmer);
 
         String sql = """
             UPDATE farmers
-            SET farmer_name = ?, phone = ?, village = ?, district = ?
+            SET farmer_name = ?, phone = ?, village = ?, district = ?, address = ?
             WHERE farmer_id = ?
-            RETURNING farmer_id, farmer_name, phone, village, district
+            RETURNING farmer_id, farmer_name, phone, village, district, address
             """;
 
         List<Map<String, Object>> rows = jdbc.queryForList(
@@ -88,22 +80,18 @@ public class FarmerController {
             farmer.phone(),
             farmer.village(),
             farmer.district(),
+            farmer.address(),
             id
         );
 
         if (rows.isEmpty()) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Farmer not found"
-            );
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Farmer not found");
         }
-
         return rows.get(0);
     }
 
-    // Delete a farmer
     @DeleteMapping("/{id}")
     public Map<String, String> deleteFarmer(@PathVariable int id) {
-
         try {
             int deleted = jdbc.update(
                 "DELETE FROM farmers WHERE farmer_id = ?", id
@@ -114,7 +102,8 @@ public class FarmerController {
             return Map.of("message", "Farmer deleted successfully");
         } catch (org.springframework.dao.DataIntegrityViolationException ex) {
             throw new ResponseStatusException(
-                HttpStatus.CONFLICT, "Farmer has linked fields. Delete or reassign those fields first."
+                HttpStatus.CONFLICT,
+                "Farmer has linked fields. Delete or reassign those fields first."
             );
         }
     }
@@ -125,7 +114,6 @@ public class FarmerController {
             farmer.phone() == null || farmer.phone().isBlank() ||
             farmer.village() == null || farmer.village().isBlank() ||
             farmer.district() == null || farmer.district().isBlank()) {
-
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "Farmer name, phone, village and district are required"
@@ -137,6 +125,7 @@ public class FarmerController {
         String farmerName,
         String phone,
         String village,
-        String district
+        String district,
+        String address
     ) {}
 }

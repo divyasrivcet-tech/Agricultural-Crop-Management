@@ -172,3 +172,41 @@ sequenceDiagram
 
 
 ```
+
+---
+
+## 8. UML Class Diagram
+
+```mermaid
+classDiagram
+    class CropManagementApplication
+    class AgricultureActivityController
+    class FarmerController
+    class FieldController
+    class CropController
+    class SeasonController
+    class YieldRecordController
+    class ReportsController
+    class HealthController
+    class StaffAuthController
+    class StaffUserDetailsService
+    class SecurityConfig
+    class Crop
+    class JdbcTemplate
+    class PasswordEncoder
+    class UserDetailsService
+    AgricultureActivityController --> JdbcTemplate
+    FarmerController --> JdbcTemplate
+    FieldController --> JdbcTemplate
+    CropController --> JdbcTemplate
+    SeasonController --> JdbcTemplate
+    YieldRecordController --> JdbcTemplate
+    ReportsController --> JdbcTemplate
+    HealthController --> JdbcTemplate
+    StaffAuthController --> JdbcTemplate
+    StaffAuthController --> PasswordEncoder
+    StaffUserDetailsService --> JdbcTemplate
+    StaffUserDetailsService ..|> UserDetailsService
+    CropController ..> Crop
+    SecurityConfig ..> PasswordEncoder
+```

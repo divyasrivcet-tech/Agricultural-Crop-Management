@@ -7,3 +7,6 @@ __pycache__/
 yield_report.csv
 yield_by_crop.png
 
+
+# Backup files
+*.bak
