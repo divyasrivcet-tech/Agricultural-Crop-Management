@@ -1,4 +1,4 @@
-const modules = {
+﻿const modules = {
   farmers: {
     title: 'Farmer Management', singular: 'Farmer', endpoint: '/api/farmers', number: 'MODULE 01',
     fields: [
@@ -217,14 +217,88 @@ async function loadReports() {
   try { const result=await api(id?`${config.endpoint}/${id}`:config.endpoint,{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); $('formMessage').textContent=id?`${config.singular} updated successfully.`:`${config.singular} added successfully.`; form.reset(); $('recordId').value=''; $('saveButton').textContent=`Add ${config.singular}`; $('cancelButton').hidden=true; $('formTitle').textContent=config.title; await loadRecords(); }
   catch(error) { $('formMessage').textContent=error.message; }
 });
+function showDashboard() {
+  activeModule = 'dashboard';
+  $('dashboardPanel').hidden = false;
+  $('reportsPanel').hidden = true;
+  $('managementPanel').hidden = true;
+  $('recordsPanel').hidden = true;
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.module === 'dashboard');
+  });
+}
+
+async function loadDashboard() {
+  const message = $('dashboardMessage');
+  const container = $('dashboardCards');
+
+  message.textContent = 'Loading farm performance...';
+
+  try {
+    const data = await api('/api/reports/summary');
+
+    const money = value => new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2
+    }).format(Number(value) || 0);
+
+    const quantity = value => new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 2
+    }).format(Number(value) || 0);
+
+    const metrics = [
+      ['Total Harvest', quantity(data.totalHarvestKg) + ' kg', 'Total harvested quantity'],
+      ['Total Revenue', money(data.totalRevenue), 'Revenue from harvest records'],
+      ['Total Cost', money(data.totalCost), 'Combined recorded expenses'],
+      ['Profit / Loss', money(data.profit), 'Revenue minus total cost'],
+      ['Harvested Area', quantity(data.harvestedAreaAcres) + ' acres', 'Recorded harvested area'],
+      ['Productivity', quantity(data.productivityKgPerAcre) + ' kg/acre', 'Harvest per acre']
+    ];
+
+    container.replaceChildren();
+
+    metrics.forEach(([label, value, note]) => {
+      const card = document.createElement('article');
+      card.className = 'metric-card';
+
+      const heading = document.createElement('span');
+      heading.textContent = label;
+
+      const amount = document.createElement('strong');
+      amount.textContent = value;
+
+      const description = document.createElement('small');
+      description.textContent = note;
+
+      card.append(heading, amount, description);
+      container.appendChild(card);
+    });
+
+    message.textContent = 'Farm performance updated successfully.';
+  } catch (error) {
+    message.textContent = 'Unable to load dashboard data: ' + error.message;
+  }
+}
+
 $('moduleTabs').addEventListener('click', event => {
   const button = event.target.closest('button[data-module]');
   if (!button) return;
 
   const selectedModule = button.dataset.module;
-  document.querySelectorAll('.tab').forEach(tab =>
-    tab.classList.toggle('active', tab === button)
-  );
+
+  if (selectedModule === 'dashboard') {
+    showDashboard();
+    loadDashboard();
+    return;
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.toggle('active', tab === button);
+  });
+
+  $('dashboardPanel').hidden = true;
 
   if (selectedModule === 'reports') {
     activeModule = 'reports';
@@ -239,13 +313,39 @@ $('moduleTabs').addEventListener('click', event => {
   $('reportsPanel').hidden = true;
   $('managementPanel').hidden = false;
   $('recordsPanel').hidden = false;
+
   form.reset();
   drawForm();
   loadRecords();
 });
 
-$('cancelButton').addEventListener('click',()=>{form.reset(); drawForm();});
-$('refreshButton').addEventListener('click',loadRecords);
-$('healthButton').addEventListener('click',async()=>{try{$('healthResult').textContent=JSON.stringify(await api('/api/health'),null,2);}catch(error){$('healthResult').textContent=error.message;}});
+$('openFarmersButton').addEventListener('click', () => {
+  document.querySelector('[data-module="farmers"]').click();
+});
+
+$('openReportsButton').addEventListener('click', () => {
+  document.querySelector('[data-module="reports"]').click();
+});
+
+$('dashboardRefreshButton').addEventListener('click', loadDashboard);
+$('cancelButton').addEventListener('click', () => {
+  form.reset();
+  drawForm();
+});
+$('refreshButton').addEventListener('click', loadRecords);
 $('reportsRefreshButton').addEventListener('click', loadReports);
-drawForm(); loadRecords();
+
+$('healthButton').addEventListener('click', async () => {
+  try {
+    $('healthResult').textContent = JSON.stringify(
+      await api('/api/health'),
+      null,
+      2
+    );
+  } catch (error) {
+    $('healthResult').textContent = error.message;
+  }
+});
+
+showDashboard();
+loadDashboard();
