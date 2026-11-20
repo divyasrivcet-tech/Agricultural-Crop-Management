@@ -1,4 +1,4 @@
-﻿const modules = {
+const modules = {
   farmers: {
     title: 'Farmer Management', singular: 'Farmer', endpoint: '/api/farmers', number: 'MODULE 01',
     fields: [
@@ -157,14 +157,101 @@ async function deleteRecord(item) {
   catch(error) { $('formMessage').textContent=error.message; }
 }
 
+function drawBarChart(canvasId, labels, values, formatValue) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const width = Math.max(canvas.clientWidth || 500, 350);
+  const height = 360;
+  const ratio = window.devicePixelRatio || 1;
+
+  canvas.width = width * ratio;
+  canvas.height = height * ratio;
+  canvas.style.width = "100%";
+  canvas.style.height = height + "px";
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  const palettes = {
+    cropYieldChart: ["#2563eb", "#3b82f6", "#60a5fa", "#1d4ed8"],
+    farmerYieldChart: ["#7c3aed", "#8b5cf6", "#a78bfa", "#6d28d9"],
+    financialChart: ["#2563eb", "#f59e0b", "#ef4444", "#8b5cf6"]
+  };
+
+  const palette = palettes[canvasId] || ["#2563eb"];
+  const left = 85, right = 25, top = 35, bottom = 105;
+  const chartWidth = width - left - right;
+  const chartHeight = height - top - bottom;
+  const safeValues = values.map(v => Math.max(0, Number(v) || 0));
+  const maxValue = Math.max(...safeValues, 1);
+  const slot = chartWidth / Math.max(labels.length, 1);
+  const barWidth = Math.min(48, slot * 0.55);
+
+  ctx.font = "12px Arial";
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#64748b";
+
+  for (let i = 0; i <= 4; i++) {
+    const y = top + chartHeight - chartHeight * i / 4;
+    const value = maxValue * i / 4;
+
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(width - right, y);
+    ctx.stroke();
+
+    ctx.fillText(formatValue(value), left - 10, y + 4);
+  }
+
+  labels.forEach((label, index) => {
+    const value = safeValues[index] || 0;
+    const barHeight = value / maxValue * chartHeight;
+    const x = left + slot * index + (slot - barWidth) / 2;
+    const y = top + chartHeight - barHeight;
+
+    ctx.fillStyle = palette[index % palette.length];
+    ctx.beginPath();
+    ctx.roundRect(x, y, barWidth, barHeight, [5, 5, 0, 0]);
+    ctx.fill();
+
+    ctx.fillStyle = "#334155";
+    ctx.textAlign = "center";
+    ctx.font = "bold 11px Arial";
+    ctx.fillText(formatValue(value), x + barWidth / 2, Math.max(y - 9, 15));
+
+    const shortLabel = String(label).length > 16
+      ? String(label).slice(0, 14) + "..."
+      : String(label);
+
+    ctx.save();
+    ctx.translate(x + barWidth / 2, height - bottom + 15);
+    ctx.rotate(-Math.PI / 5);
+    ctx.fillStyle = "#475569";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText(shortLabel, 0, 0);
+    ctx.restore();
+  });
+}
 async function loadReports() {
   const message = $('reportsMessage');
   const container = $('reportsCards');
+
   message.textContent = 'Loading reports...';
   container.replaceChildren();
 
   try {
-    const data = await api('/api/reports/summary');
+    const [data, cropData, farmerData, financial] = await Promise.all([
+      api('/api/reports/summary'),
+      api('/api/reports/yield-by-crop'),
+      api('/api/reports/yield-by-farmer'),
+      api('/api/reports/financial')
+    ]);
+
     const money = value => new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -207,11 +294,42 @@ async function loadReports() {
       container.appendChild(card);
     });
 
-    message.textContent = 'Reports loaded successfully.';
+    drawBarChart(
+      'cropYieldChart',
+      cropData.map(item => item.crop_name),
+      cropData.map(item => item.total_yield),
+      quantity
+    );
+
+    drawBarChart(
+      'farmerYieldChart',
+      farmerData.map(item => item.farmer_name),
+      farmerData.map(item => item.total_yield),
+      quantity
+    );
+
+    const expenses = [
+      Number(financial.fertilizer_cost) || 0,
+      Number(financial.irrigation_cost) || 0,
+      Number(financial.other_cost) || 0
+    ];
+
+    drawBarChart(
+      'financialChart',
+      ['Revenue', 'Fertilizer', 'Irrigation', 'Other Cost'],
+      [
+        Number(financial.revenue) || 0,
+        ...expenses
+      ],
+      money
+    );
+
+    message.textContent = 'Reports and analytics loaded successfully.';
   } catch (error) {
     message.textContent = 'Unable to load reports: ' + error.message;
   }
-}form.addEventListener('submit', async event=>{
+}
+form.addEventListener('submit', async event=>{
   event.preventDefault(); const config=modules[activeModule], id=$('recordId').value; const body={};
   config.fields.forEach(field=>{ const input=$(`field-${field.key}`); let value=input.value; if(field.type==='number'||field.type==='select') value=value===''?null:Number(value); body[field.key]=value; });
   try { const result=await api(id?`${config.endpoint}/${id}`:config.endpoint,{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); $('formMessage').textContent=id?`${config.singular} updated successfully.`:`${config.singular} added successfully.`; form.reset(); $('recordId').value=''; $('saveButton').textContent=`Add ${config.singular}`; $('cancelButton').hidden=true; $('formTitle').textContent=config.title; await loadRecords(); }

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -106,6 +106,26 @@
         </div>
         <p id="reportsMessage" role="status"></p>
         <div id="reportsCards" class="reports-grid"></div>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3>Crop-wise Yield Analysis</h3>
+        <p>Total production by crop (kg)</p>
+        <canvas id="cropYieldChart"></canvas>
+    </div>
+
+    <div class="analytics-card">
+        <h3>Farmer-wise Yield Comparison</h3>
+        <p>Production comparison between farmers (kg)</p>
+        <canvas id="farmerYieldChart"></canvas>
+    </div>
+
+    <div class="analytics-card">
+        <h3>Revenue vs Expenses</h3>
+        <p>Farm financial performance (₹)</p>
+        <canvas id="financialChart"></canvas>
+    </div>
+</div>
       </section>
 
       <section id="managementPanel" class="panel" hidden>

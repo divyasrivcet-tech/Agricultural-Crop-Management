@@ -2,8 +2,8 @@
 
 ## Agriculture Crop Management and Yield Analysis System
 
-**Version:** 1.0  
-**Date:** 18 November 2026  
+**Version:** 1.1
+**Date:** 18 November 2026
 **Project Type:** Web-Based Application
 
 ---
@@ -28,7 +28,12 @@ The system provides the following major modules:
 4. Crop Management
 5. Season Management
 6. Yield Record Management
-7. Yield Data Analysis Support
+7. Cultivation Activity Management
+8. Fertilizer Input Management
+9. Irrigation Management
+10. Harvest Record Management
+11. Reports and Dashboard Analytics
+12. Yield Data Analysis Support
 
 Authorized staff can create, view, update and delete agricultural records through the web interface.
 
@@ -78,6 +83,9 @@ The major functions are:
 - Manage agricultural seasons.
 - Record and manage crop yield information.
 - Retrieve agricultural records from PostgreSQL.
+- Manage cultivation activities, fertilizer inputs and irrigation activities.
+- Manage harvest records, including quantity, selling price and other costs.
+- Display dashboard summaries for harvest, revenue, costs, profit or loss, harvested area and productivity.
 - Support yield-related analysis through database queries and project analysis resources.
 
 ### 2.3 User Classes
@@ -248,6 +256,80 @@ The yield quantity must not be negative. New records shall use the current datab
 
 ---
 
+### FR-11: Cultivation Activity Management
+
+The system shall support creating, viewing, updating and deleting cultivation activities.
+
+Each activity includes:
+- Field reference
+- Crop reference
+- Activity name
+- Activity date
+- Description
+
+Field, crop, activity name and activity date are required.
+
+### FR-12: Fertilizer Input Management
+
+The system shall support creating, viewing, updating and deleting fertilizer input records.
+
+Each record includes:
+- Field reference
+- Crop reference
+- Input name
+- Quantity
+- Unit
+- Cost
+- Input date
+
+The input name, field, crop, quantity and date are required. Negative quantity and cost values shall be rejected.
+
+### FR-13: Irrigation Management
+
+The system shall support creating, viewing, updating and deleting irrigation activity records.
+
+Each record includes:
+- Field reference
+- Irrigation date
+- Water quantity
+- Duration in minutes
+- Cost
+- Notes
+
+Field reference and irrigation date are required. Negative cost values shall be rejected.
+
+### FR-14: Harvest Record Management
+
+The system shall support creating, viewing, updating and deleting harvest records.
+
+Each record includes:
+- Field reference
+- Crop reference
+- Season reference
+- Harvest date
+- Harvest quantity in kilograms
+- Selling price per kilogram
+- Other cost
+
+Negative harvest quantity, selling price and other cost values shall be rejected.
+
+### FR-15: Dashboard and Reports
+
+The system shall provide a dashboard summary through `/api/reports/summary`.
+
+The dashboard shall calculate and display:
+- Total harvest quantity in kilograms.
+- Total revenue based on harvest quantity multiplied by selling price per kilogram.
+- Fertilizer cost.
+- Irrigation cost.
+- Other harvest cost.
+- Total cost as the sum of the three cost categories.
+- Profit or loss as revenue minus total cost.
+- Harvested field area in acres.
+- Productivity in kilograms per acre.
+
+Productivity shall be calculated using total harvest quantity divided by harvested area. If harvested area is zero, productivity shall be zero.
+
 ## 4. External Interface Requirements
 
 ### 4.1 User Interface
@@ -292,6 +374,20 @@ The major application endpoints are:
 | Yield Records | `/api/yield-records/{id}` | GET, PUT, DELETE |
 
 ---
+
+### 4.4 Additional Management API Endpoints
+
+| Module | API Endpoint | Supported Operations |
+|---|---|---|
+| Cultivation | `/api/cultivation` | GET, POST |
+| Cultivation | `/api/cultivation/{id}` | PUT, DELETE |
+| Fertilizer Inputs | `/api/fertilizers` | GET, POST |
+| Fertilizer Inputs | `/api/fertilizers/{id}` | PUT, DELETE |
+| Irrigation | `/api/irrigation` | GET, POST |
+| Irrigation | `/api/irrigation/{id}` | PUT, DELETE |
+| Harvest Records | `/api/harvests` | GET, POST |
+| Harvest Records | `/api/harvests/{id}` | PUT, DELETE |
+| Reports | `/api/reports/summary` | GET |
 
 ## 5. Database Requirements
 
@@ -365,6 +461,47 @@ The application uses PostgreSQL with the following main tables.
 
 ---
 
+### 5.8 Additional Database Tables
+
+The application also uses the following tables for agricultural activity tracking:
+
+**Cultivation Activities**
+- activity_id – Primary key
+- field_id – Field reference
+- crop_id – Crop reference
+- activity_name – Activity name
+- activity_date – Activity date
+- description – Additional details
+
+**Fertilizer Inputs**
+- input_id – Primary key
+- field_id – Field reference
+- crop_id – Crop reference
+- input_name – Fertilizer or input name
+- quantity – Input quantity
+- unit – Measurement unit
+- cost – Input cost
+- input_date – Input date
+
+**Irrigation Activities**
+- irrigation_id – Primary key
+- field_id – Field reference
+- irrigation_date – Irrigation date
+- water_quantity – Water quantity
+- duration_minutes – Irrigation duration
+- cost – Irrigation cost
+- notes – Additional details
+
+**Harvest Records**
+- harvest_id – Primary key
+- field_id – Field reference
+- crop_id – Crop reference
+- season_id – Season reference
+- harvest_date – Harvest date
+- quantity_kg – Harvest quantity
+- selling_price_per_kg – Selling price
+- other_cost – Other harvest cost
+
 ## 6. Non-Functional Requirements
 
 ### 6.1 Security
@@ -392,7 +529,7 @@ The application uses PostgreSQL with the following main tables.
 - The application shall provide a simple web interface.
 - Forms shall use understandable labels.
 - Users shall receive appropriate validation and operation messages.
-- Navigation shall support the five management modules.
+- Navigation shall support all agricultural management modules and dashboard reports.
 
 ### 6.5 Maintainability
 
@@ -442,6 +579,19 @@ The system is considered acceptable when:
 
 ---
 
+### Additional Acceptance Criteria
+
+The additional functionality is considered acceptable when:
+
+1. Cultivation activities can be added, viewed, updated and deleted.
+2. Fertilizer input records can be added, viewed, updated and deleted.
+3. Irrigation activities can be added, viewed, updated and deleted.
+4. Harvest records can be added, viewed, updated and deleted.
+5. Invalid negative quantity and cost values are rejected where implemented.
+6. Dashboard summary values are calculated from PostgreSQL records.
+7. Revenue, total cost, profit or loss and productivity are calculated correctly.
+8. The dashboard can retrieve its summary through `/api/reports/summary`.
+
 ## 9. Future Enhancements
 
 The following features may be considered for future versions:
@@ -460,8 +610,8 @@ These are proposed enhancements and are not claimed as completed features in the
 
 ## 10. Conclusion
 
-The Agriculture Crop Management and Yield Analysis System provides a centralized platform for maintaining agricultural information.
+The Agriculture Crop Management and Yield Analysis System provides staff authentication, agricultural record management, cultivation activity tracking, fertilizer input management, irrigation tracking, harvest management and dashboard-based reports.
 
-By combining individual staff authentication, five CRUD management modules, Spring Boot REST APIs and PostgreSQL storage, the application simplifies the management of farmers, fields, crops, seasons and yield records.
+The application uses Java 21, Spring Boot, Spring JDBC and PostgreSQL, with a browser-based HTML, CSS and JavaScript interface. The dashboard provides agricultural performance summaries using stored harvest, cost and field information.
 
-This SRS document describes the requirements and expected behaviour of the implemented system and serves as a reference for development, testing, maintenance and future enhancement.
+This SRS documents the expanded application functionality and serves as a reference for development, testing, maintenance and future enhancements.
